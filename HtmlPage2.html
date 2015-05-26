@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8' />
+    <title>访问Geoserver发布的地图</title>
+    <script type='text/javascript' src='OpenLayers.js'></script>
+    <script type='text/javascript'>
+        var map = null;
+        var wms_layers = "topp:tasmania_state_boundaries,topp:tasmania_roads,topp:tasmania_cities";
+        var wms_url = "http://localhost:8080/geoserver/topp/wms?";
+        function init() {
+            //定义地图边界
+            var bounds = new OpenLayers.Bounds(145.19754, -43.423512,
+             148.27298000000002, -40.852802);
+            var options = {
+                projection: "EPSG:4326",
+                center: new OpenLayers.LonLat(146, -42),
+            };
+            map = new OpenLayers.Map('map_element', options);
+
+            var baselayer = new OpenLayers.Layer.WMS("OpenLayers base",
+               //geoserver所在服务器地址
+               wms_url,
+               {
+                   layers: wms_layers
+               });
+            //添加wms图层
+          
+
+            map.addLayer(baselayer);
+            map.events.register("click", map, onMapClick);
+            //添加control空间
+            map.addControl(new OpenLayers.Control.LayerSwitcher());
+            map.addControl(new OpenLayers.Control.MousePosition());
+            map.addControl(new OpenLayers.Control.ScaleLine());
+            map.addControl(new OpenLayers.Control.Scale);            
+            map.zoomToMaxExtent(bounds);
+        }
+
+        function onComplete(response) {
+            alert(response.responseText);
+            document.getElementById('div_content').innerHTML = response.responseText;
+        }
+        function onFailure(response) {
+            alert("onFailure");
+            document.getElementById('div_content').innerHTML = response.responseText;
+        }
+        function onMapClick(e) {
+        
+            var params = {
+                REQUEST: "GetFeatureInfo",                // WMS GetFeatureInfo        
+                BBOX: map.getExtent().toBBOX(),       // 地图的地图范围
+                WIDTH: map.size.w,                     // 地图的宽度
+                HEIGHT: map.size.h,                     // 地图高度
+                X: e.xy.x,                         // 屏幕坐标X
+                Y: e.xy.y,                         // 屏幕坐标X
+                QUERY_LAYERS: map.layers[0].params.LAYERS,   // 定义要查询的图层
+                INFO_FORMAT: "text/html",                    // GetFeatureInfo返回格式        
+                FEATURE_COUNT: 50,                             // 最大返回的Feature个数
+                Layers: wms_layers,                      // WMS 图层列表
+                Styles: "",                             // 图层样式
+                format: "image/png",                   // 地图格式
+                EXCEPTIONS: "application/vnd.ogc.se_xml"     // Exception 类型
+            };
+            debugger;
+            OpenLayers.Request.GET(wms_url,
+                                            params,
+                                            this,
+                                            onComplete,
+                                            onFailure);
+            OpenLayers.Event.stop(e);
+        }
+  
+
+    </script>
+</head>
+<body onload='init();'>
+    <div id="div_content"></div>
+    <div style="position: absolute; top: 50px; left: 80px; width: 300px; height: 100px;">
+        <div id='map_element' style='width:1200px;height:500px;'></div>
+        </div>
+</body>
+</html>

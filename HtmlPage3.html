@@ -1,0 +1,90 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <title> OpenLayers : Click Select </title>
+    <link rel="stylesheet" href="theme/default/style.css" type="text/css" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" />
+    <style type="text/css">
+        #wrapper {
+            width: 800px;
+        }
+
+        #screen_xy {
+            float: left;
+        }
+
+        #map_xy {
+            float: right;
+        }
+    </style>
+    <script src="./OpenLayers-2.10/lib/OpenLayers.js"></script>
+    <script type="text/javascript">
+
+        var map = null;
+        var wms_url = "http://localhost:8080/geoserver/topp/wms?";
+        var wms_layer = "topp:tasmania_state_boundaries,topp:tasmania_roads,topp:tasmania_cities";
+        var wms_format = 'image/png';
+
+        function init()
+        {
+            //创建map对象，
+            map = new OpenLayers.Map("map");
+            var layer = new OpenLayers.Layer.WMS("WMS Country",     wms_url,
+                                                 {
+                                                     layers:     wms_layer,
+                                                     format:     wms_format,
+                                                     singleTile: true
+                                                 });
+            // 添加图层
+            map.addLayer(layer);
+
+            // 注册map事件
+            map.events.register("click", map, onMapClick);
+
+            // 放大到全屏
+            map.zoomToMaxExtent();
+        }
+
+        function onMapClick(e){
+            var params = {
+                REQUEST:        "GetFeatureInfo",                // WMS GetFeatureInfo
+                BBOX:            map.getExtent().toBBOX(),       // 地图的地图范围
+                WIDTH:           map.size.w,                     // 地图的宽度
+                HEIGHT:          map.size.h,                     // 地图高度
+                X:               e.xy.x,                         // 屏幕坐标X
+                Y:               e.xy.y,                         // 屏幕坐标X
+                QUERY_LAYERS:    map.layers[0].params.LAYERS,    // 定义要查询的图层
+                INFO_FORMAT:     "text/html",                    // GetFeatureInfo返回格式
+                FEATURE_COUNT:   50,                             // 最大返回的Feature个数
+                Layers:          wms_layer,                      // WMS 图层列表
+                Styles:          "",                             // 图层样式
+                format:          "image/png" ,                    // 地图格式
+                EXCEPTIONS:     "application/vnd.ogc.se_xml"     // Exception 类型
+        };
+        OpenLayers.loadURL(wms_url,
+                           params,
+                           this,
+                           onComplete,    //完成处理函数
+                           onFailure);    //失败处理函数
+        OpenLayers.Event.stop(e);
+        }
+
+        function onComplete(response)
+        {
+            alert(response.responseText);
+            document.getElementById('click_response').innerHTML = response.responseText;
+        }
+        function onFailure(response)
+        {
+            alert("onFailure");
+            document.getElementById('click_response').innerHTML = response.responseText;
+        }
+    </script>
+
+</head>
+
+<body onload="init()">
+    <div id="map" class="smallmap"></div>
+    <div id="click_response"></div>
+</body>
+</html>

@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html lang='zh-cn'>
+<head>
+    <meta charset='utf-8' />
+    <title>访问发布地图</title>
+    <script type='text/javascript' src='OpenLayers.js'></script>
+    <script type='text/javascript'>
+        var map;
+        function init() {
+            map = new OpenLayers.Map('map_element', {});
+            var wmsLayerMap = new OpenLayers.Layer.WMS(
+                'Base layer',
+                'http://vmap0.tiles.osgeo.org/wms/vmap0',
+                { layers: 'basic' },
+                { isBaseLayer: true }
+                );
+            var wmsLayersLabels = new OpenLayers.Layer.WMS(
+                 'Location Labels',
+                 'http://vmap0.tiles.osgeo.org/wms/vmap0',
+                 {
+                     layers: 'clabel,ctylabel,statelabel',
+                     transparent: true
+                 },
+                 { visibility: false, opacity: .5 }
+              );
+            var wmsStateLines = new OpenLayers.Layer.WMS(
+                'State Line Layer',
+                'http://labs.metacarta.com/wms/vmap0',
+                {
+                    layers: 'stateboundary',
+                    transparent: true
+                },
+                {
+                    minScale: 13841995.078125
+                }
+            );
+            wmsWaterDepth = new OpenLayers.Layer.WMS(
+                'Water Depth',
+                'http://labs.metacarta.com/wms/vmap0',
+                {
+                    layers: 'depthcontour',
+                    transparent: true
+                },
+                { opacity: 0.8 }
+            );
+            wmsRoads = new OpenLayers.Layer.WMS(
+            'Roads',
+            'http://labs.metacarta.com/wms/vmap0',
+            {
+                layers: 'priroad,secroad,rail',
+                transparent: true
+            },
+            { transistionEffect: 'resize' }
+            );
+            map.addLayers([wmsLayerMap, wmsLayersLabels, wmsStateLines, wmsWaterDepth, wmsRoads]);
+
+            map.addControl(new OpenLayers.Control.LayerSwitcher({}));
+
+            if (!map.getCenter()) {
+                map.zoomToMaxExtent();
+            }
+        }
+
+    </script>
+</head>
+<body onload='init();'>
+    <div id='map_element' style='width:800px; height: 600px;'>
+    </div>
+</body>
+</html>
